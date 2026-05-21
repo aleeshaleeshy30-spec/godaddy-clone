@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoDaddy Clone - Domain Search</title>
+    <style>
+        /* --- 1. RESET & BASIC STYLES --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        
+        /* --- 2. NAVIGATION --- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2345b8;
+            display: flex;
+            align-items: center;
+        }
+        .logo span { background: #2345b8; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; margin-right: 8px; }
+
+        .nav-links button {
+            background: none;
+            border: none;
+            margin-left: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #555;
+            transition: color 0.2s;
+        }
+        .nav-links button:hover { color: #2345b8; }
+        
+        .cart-btn { position: relative; }
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: red;
+            color: white;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- 3. PAGES CONTAINER --- */
+        main { min-height: 85vh; }
+
+        .page { display: none; } /* Hidden by default */
+        .page.active { display: block; } /* Shown when active */
+
+        /* --- 4. HOME PAGE (SEARCH) --- */
+        .hero {
+            background: linear-gradient(135deg, #2345b8, #5b8def);
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .hero h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .hero p { font-size: 1.2rem; margin-bottom: 30px; opacity: 0.9; }
+
+        .search-box {
+            display: flex;
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        .search-box button {
+            background: #ff9000;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .search-box button:hover { background: #e68100; }
+
+        /* Search Results Area */
+        .results-area {
+            max-width: 800px;
+            margin: -30px auto 50px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .result-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: none; /* Hidden until search */
+            align-items: center;
+            justify-content: space-between;
+            border-left: 5px solid #2ecc71;
+        }
+
+        .result-card.taken { border-left-color: #e74c3c; }
+
+        .domain-info h2 { font-size: 1.8rem; color: #333; margin-bottom: 5px; }
+        .domain-info p { color: #666; }
+        
+        .price-action { text-align: right; }
+        .price-action .price { font-size: 1.5rem; font-weight: bold; color: #333; }
+        .price-action .btn-buy {
+            display: inline-block;
+            margin-top: 10px;
+            background: #2ecc71;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+        }
+        .price-action .btn-buy:hover { background: #27ae60; }
+        .error-msg { color: #e74c3c; font-weight: bold; font-size: 1.2rem; display: none; text-align: center; margin-top: 20px; }
+
+        /* Promotions */
+        .promotions { padding: 50px 20px; max-width: 1000px; margin: 0 auto; }
+        .promotions h2 { text-align: center; margin-bottom: 30px; color: #333; }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card h3 { color: #2345b8; font-size: 1.4rem; margin-bottom: 10px; }
+        .card .price { font-size: 1.3rem; font-weight: bold; }
+
+        /* --- 5. DASHBOARD PAGE --- */
+        .dashboard-container { padding: 40px 20px; max-width: 900px; margin: 0 auto; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f9f9f9; color: #555; font-size: 0.9rem; }
+        .action-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 0.9rem; margin-left: 10px; }
+        .renew-btn { color: #2345b8; }
+
+        .empty-state { text-align: center; padding: 50px; color: #777; }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 1.8rem; }
+            .search-box { flex-direction: column; }
+            .search-box input { margin-bottom: 10px; border: 1px solid #eee; }
+            .result-card, .dashboard-header { flex-direction: column; text-align: center; gap: 15px; }
+            .price-action { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVIGATION -->
+    <nav class="navbar">
+        <div class="logo" onclick="showPage('home')">
+            <span>G</span> GoDaddyClone
+        </div>
+        <div class="nav-links">
+            <button onclick="showPage('home')">Home</button>
+            <button onclick="showPage('dashboard')">My Account</button>
+            <button onclick="showPage('home')" class="cart-btn">
+                Cart
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- 1. HOME / SEARCH PAGE -->
+        <div id="home" class="page active">
+            <div class="hero">
+                <h1>Find Your Perfect Domain</h1>
+                <p>Secure your identity online starting at $12.99/yr.</p>
+                
+                <form class="search-box" onsubmit="searchDomain(event)">
+                    <input type="text" id="searchInput" placeholder="Type a domain name..." required>
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+
+            <div class="results-area">
+                <div class="error-msg" id="errorMsg"></div>
+                
+                <div class="result-card" id="resultCard">
+                    <div class="domain-info">
+                        <h2 id="resultDomain">example.com</h2>
+                        <p id="resultStatus">Available</p>
+                    </div>
+                    <div class="price-action">
+                        <div class="price" id="resultPrice">$12.99/yr</div>
+                        <button class="btn-buy" onclick="addToCart()">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="promotions">
+                <h2>Popular Domain Extensions</h2>
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3>.com</h3>
+                        <p class="price">$12.99</p>
+                        <p>Most popular</p>
+                    </div>
+                    <div class="card">
+                        <h3>.net</h3>
+                        <p class="price">$14.99</p>
+                        <p>Tech standard</p>
+                    </div>
+                    <div class="card">
+                        <h3>.org</h3>
+                        <p class="price">$11.99</p>
+                        <p>Organizations</p>
+                    </div>
+                    <div class="card">
+                        <h3>.io</h3>
+                        <p class="price">$39.99</p>
+                        <p>Tech startups</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. DASHBOARD PAGE -->
+        <div id="dashboard" class="page">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <h2>My Domains</h2>
+                    <button onclick="showPage('home')" style="color: #2345b8; background:none; border:1px solid #2345b8; padding: 8px 15px; border-radius: 4px; cursor:pointer;">+ Get New Domain</button>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Domain Name</th>
+                            <th>Renewal Date</th>
+                            <th>Auto Renew</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="domainList">
+                        <!-- Domains will be injected here by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA & STATE ---
+        // Pre-populating with some dummy domains
+        let domains = [
+            { name: 'my-startup.com', renewal: '2024-10-15', autoRenew: true, price: '$12.99' },
+            { name: 'shop-online.net', renewal: '2025-01-20', autoRenew: false, price: '$14.99' }
+        ];
+        
+        let cartCount = 0;
+        let latestSearch = null;
+
+        // --- NAVIGATION LOGIC ---
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            if(pageId === 'dashboard') renderDashboard();
+        }
+
+        // --- DOMAIN SEARCH LOGIC (Mock) ---
+        function searchDomain(event) {
+            event.preventDefault(); // Stop form refresh
+            const input = document.getElementById('searchInput').value.trim();
+            
+            const resultCard = document.getElementById('resultCard');
+            const errorMsg = document.getElementById('errorMsg');
+            
+            // Clear previous
+            resultCard.style.display = 'none';
+            errorMsg.style.display = 'none';
+            
+            // Mock Logic: Wait 500ms then simulate check
+            setTimeout(() => {
+                // Simple mock: If the name contains "test", it's taken. Otherwise available.
+                if (input.toLowerCase().includes('test')) {
+                    // Taken
+                    errorMsg.innerText = `Sorry, ${input} is already taken.`;
+                    errorMsg.style.display = 'block';
+                } else {
+                    // Available
+                    latestSearch = { name: input, price: '$12.99' };
+                    document.getElementById('resultDomain').innerText = input + '.com';
+                    document.getElementById('resultStatus').innerText = 'Available';
+                    document.getElementById('resultPrice').innerText = '$12.99/yr';
+                    resultCard.style.display = 'flex';
+                    resultCard.classList.remove('taken');
+                }
+            }, 500);
+        }
+
+        // --- ADD TO CART / BUY ---
+        function addToCart() {
+            if (!latestSearch) return;
+            
+            // Add domain to our list
+            domains.push({
+                name: latestSearch.name + '.com',
+                renewal: '2025-10-15',
+                autoRenew: true,
+                price: latestSearch.price
+            });
+
+            cartCount++;
+            document.getElementById('cartCount').innerText = cartCount;
+            alert('Domain added to cart and purchased successfully!');
+            
+            // Reset UI
+            document.getElementById('resultCard').style.display = 'none';
+            document.getElementById('searchInput').value = '';
+            latestSearch = null;
+            
+            // Go to dashboard
+            showPage('dashboard');
+        }
+
+        // --- DASHBOARD RENDER LOGIC ---
+        function renderDashboard() {
+            const tbody = document.getElementById('domainList');
+            tbody.innerHTML = ''; // Clear current list
+
+            if (domains.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">You have no registered domains.</td></tr>';
+                return;
+            }
+
+            domains.forEach((domain, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:#2345b8;">${domain.name}</td>
+                    <td>${domain.renewal}</td>
+                    <td>${domain.autoRenew ? 'On' : 'Off'}</td>
+                    <td>${domain.price}</td>
+                    <td>
+                        <button class="action-btn renew-btn" onclick="alert('Renewal feature coming soon!')">Renew</button>
+                        <button class="action-btn" onclick="deleteDomain(${index})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- DELETE/REMOVE DOMAIN ---
+        function deleteDomain(index) {
+            if (confirm('Are you sure you want to remove this domain?')) {
+                domains.splice(index, 1);
+                renderDashboard();
+            }
+        }
+    </script>
+</body>
+</html>
